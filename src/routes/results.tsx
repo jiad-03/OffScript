@@ -126,6 +126,20 @@ function Results() {
     } catch (e) { if ((e as Error).name !== "AbortError") copy(text); }
   };
 
+  if (status === "missing") return (
+    <SiteFrame>
+      <section className="mx-auto max-w-xl px-5 pt-24 text-center">
+        <p className="kicker text-wine">Not found</p>
+        <h1 className="mt-4 text-5xl">This profile isn't saved here.</h1>
+        <p className="mt-4 text-muted-foreground">It may have been deleted, or saved in a different browser or device.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link to="/saved" className="btn btn-primary">My saved profiles</Link>
+          <Link to="/create" className="btn btn-outline">Create a new one</Link>
+        </div>
+      </section>
+    </SiteFrame>
+  );
+
   if (status === "empty") return (
     <SiteFrame>
       <section className="mx-auto max-w-xl px-5 pt-24 text-center">
