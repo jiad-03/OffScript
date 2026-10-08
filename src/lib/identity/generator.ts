@@ -118,10 +118,10 @@ export const generateIdentity: IdentityGenerator = (a, seed) => {
       `I'm ${a.name.trim() ? a.name.trim().split(" ")[0] + ", " : ""}someone people would describe as ${list(traits.slice(0, 3))}.`,
       `${a.name.trim() ? a.name.trim().split(" ")[0] + " here. " : ""}If I had to sum myself up: ${list(traits.slice(0, 3))}.`,
     ]),
-    `My strengths are ${list(strengths.slice(0, 3))}${field ? `, and I'm putting them to work in ${lower(field)}` : ""}.`,
+    `My strengths are ${list(strengths.slice(0, 3))}${field ? `, and I'm putting them to work in ${field}` : ""}.`,
     exp ? `Relevant experience, in my own words: ${exp.replace(/\.?$/, ".")}` : "",
     `Outside of work I spend time on ${list(ints.slice(0, 3))} — it shapes how I think and what I notice.`,
-    goalBit ? `Right now I'm focused on ${goalBit}.` : "",
+    goalBit ? `Right now I want to ${goalBit}.` : "",
     pick(["I'm always open to a good conversation.", "Feel free to reach out.", "Let's connect."]),
   ];
   const about = aboutParts.filter(Boolean).join(" ");
@@ -131,7 +131,7 @@ export const generateIdentity: IdentityGenerator = (a, seed) => {
       `Hi — welcome. This is a collection of what I care about and how I work.`,
       `This space is part portfolio, part notebook.`,
     ]),
-    `I bring ${lower(s1)} and ${lower(s2)} to everything I make${field ? `, with a focus on ${lower(field)}` : ""}.`,
+    `I bring ${lower(s1)} and ${lower(s2)} to everything I make${field ? `, with a focus on ${field}` : ""}.`,
     `My approach is ${lower(t1)} and ${lower(t2)}, and you'll see threads of ${list(ints.slice(0, 2))} throughout.`,
     goalBit ? `Next up: ${goalBit}.` : "",
   ].filter(Boolean).join(" ");
