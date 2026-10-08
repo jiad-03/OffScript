@@ -9,16 +9,21 @@ export function SiteFrame({ children }: { children: ReactNode }) {
           Off<span className="italic text-wine">Script</span>
         </Link>
         <span className="kicker hidden text-muted-foreground sm:block">The Internet Identity Toolkit</span>
-        <Link to="/create" className="kicker border-b border-foreground pb-0.5 hover:text-wine hover:border-wine">
-          Begin
-        </Link>
+        <nav className="flex items-center gap-5">
+          <Link to="/saved" className="kicker hover:text-wine" activeProps={{ className: "text-wine" }}>
+            Saved
+          </Link>
+          <Link to="/create" className="kicker border-b border-foreground pb-0.5 hover:text-wine hover:border-wine">
+            Begin
+          </Link>
+        </nav>
       </header>
       <div className="mx-auto max-w-6xl px-5 md:px-10"><div className="rule-double" /></div>
       <main>{children}</main>
       <footer className="mx-auto mt-24 max-w-6xl px-5 pb-10 md:px-10">
         <div className="border-t border-border pt-6 flex flex-col gap-2 sm:flex-row sm:justify-between text-xs text-muted-foreground">
           <span className="font-display text-base text-foreground">One real personality. Many rooms online.</span>
-          <span>No account. Your answers stay in this tab only.</span>
+          <span>No account. Answers stay in this tab; saved profiles stay in this browser only.</span>
         </div>
       </footer>
     </div>
