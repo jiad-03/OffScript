@@ -54,7 +54,7 @@ function Create() {
   useEffect(() => { const saved = loadAnswers(); if (saved) setA(saved); }, []);
   useEffect(() => { setCustom(""); window.scrollTo({ top: 0 }); }, [step]);
 
-  const s = STEPS[step];
+  const s = STEPS[step] ?? STEPS[0];
   const isList = (k: string): k is ListKey => k in OPTIONS;
 
   const toggle = (k: ListKey, v: string) => setA((p) => {

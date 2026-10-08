@@ -52,7 +52,7 @@ const motifs = ["circle", "arch", "lines", "grid"];
 
 export const generateIdentity: IdentityGenerator = (a, seed) => {
   const r = rng(seed * 9301 + 49297);
-  const pick = <T,>(arr: T[]): T => arr[Math.floor(r() * arr.length) % arr.length];
+  const pick = <T,>(arr: T[]): T => arr[Math.floor(r() * arr.length) % arr.length] as T;
   const shuffle = <T,>(arr: T[]) => [...arr].sort(() => r() - 0.5);
 
   const tone: Tone = (a.tone || "warm") as Tone;
@@ -84,7 +84,7 @@ export const generateIdentity: IdentityGenerator = (a, seed) => {
   // ---- Usernames
   const slug = (s: string) => lower(s).replace(/[^a-z0-9]+/g, "");
   const first = slug(a.name.split(" ")[0] ?? "");
-  const iw = slug(i1.split(" ")[0]), iw2 = slug(i2.split(" ")[0]), tw = slug(t1);
+  const iw = slug(i1.split(" ")[0] ?? ""), iw2 = slug(i2.split(" ")[0] ?? ""), tw = slug(t1);
   const base = first
     ? [`${first}.${iw}`, `${first}_offscript`, `${iw}by${first}`, `${first}${tw}`, `the${first}${iw2}`, `${first}.in.${iw2}`]
     : [`${tw}.${iw}`, `${iw}and${iw2}`, `not.${tw}.enough`, `${iw}notes`, `the${tw}${iw2}`, `${iw}.offscript`];
