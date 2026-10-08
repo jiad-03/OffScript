@@ -45,7 +45,7 @@ export function parseStored(raw: string | null): SavedProfile[] {
     const data = JSON.parse(raw) as unknown;
     const arr = Array.isArray(data) ? data : (data as StoredShape)?.profiles;
     if (!Array.isArray(arr)) return [];
-    return arr.filter(isProfile).map((p) => ({ ...p, handle: undefined, result: { ...p.result, handle: p.result.handle ?? "" }, answers: p.answers ?? null }));
+    return arr.filter(isProfile).map((p) => ({ ...p, result: { ...p.result, handle: p.result.handle ?? "" }, answers: p.answers ?? null }));
   } catch {
     return [];
   }
