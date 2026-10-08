@@ -8,7 +8,7 @@ import { loadAnswers, sampleAnswers } from "@/lib/identity/store";
 import type { Answers, IdentityResult } from "@/lib/identity/types";
 
 export const Route = createFileRoute("/results")({
-  validateSearch: (s: Record<string, unknown>): { sample?: boolean } => ({ sample: s.sample === true || s.sample === "true" ? true : undefined }),
+  validateSearch: (s: Record<string, unknown>): { sample?: boolean } => (s["sample"] === true || s["sample"] === "true" ? { sample: true } : {}),
   head: () => ({
     meta: [
       { title: "Your identity — OffScript" },
