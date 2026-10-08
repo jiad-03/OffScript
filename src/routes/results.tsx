@@ -5,10 +5,14 @@ import { SiteFrame } from "@/components/SiteFrame";
 import { IdentityCard } from "@/components/IdentityCard";
 import { generateIdentity } from "@/lib/identity/generator";
 import { loadAnswers, sampleAnswers } from "@/lib/identity/store";
-import type { Answers, IdentityResult } from "@/lib/identity/types";
+import { NAME_MAX, savedProfiles, type SavedResult } from "@/lib/identity/saved";
+import type { Answers } from "@/lib/identity/types";
 
 export const Route = createFileRoute("/results")({
-  validateSearch: (s: Record<string, unknown>): { sample?: boolean } => (s["sample"] === true || s["sample"] === "true" ? { sample: true } : {}),
+  validateSearch: (s: Record<string, unknown>): { sample?: boolean; saved?: string } => ({
+    ...(s["sample"] === true || s["sample"] === "true" ? { sample: true } : {}),
+    ...(typeof s["saved"] === "string" && s["saved"] ? { saved: s["saved"] } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Your identity — OffScript" },
@@ -20,43 +24,79 @@ export const Route = createFileRoute("/results")({
   component: Results,
 });
 
-type Status = "loading" | "empty" | "ready" | "error";
+type Status = "loading" | "empty" | "ready" | "error" | "missing";
 
 function copy(text: string) {
   navigator.clipboard.writeText(text).then(() => toast.success("Copied"), () => toast.error("Couldn't copy — select and copy manually."));
 }
 
 function Results() {
-  const { sample } = Route.useSearch();
+  const { sample, saved } = Route.useSearch();
   const [answers, setAnswers] = useState<Answers | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [seeds, setSeeds] = useState({ social: 1, pro: 1, card: 1 });
+  const [savedResult, setSavedResult] = useState<SavedResult | null>(null);
+  const [savedName, setSavedName] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [profileName, setProfileName] = useState("My creative identity");
+  const [savedKey, setSavedKey] = useState<string | null>(null);
 
   useEffect(() => {
+    setSavedResult(null); setSavedName(null); setSavedKey(null); setSaveOpen(false);
+    if (saved) {
+      const p = savedProfiles.get(saved);
+      if (!p) { setStatus("missing"); return; }
+      setSavedResult(p.result); setSavedName(p.name); setAnswers(p.answers);
+      setSeeds({ social: 1, pro: 1, card: 1 });
+      setStatus("ready"); return;
+    }
     const a = sample ? sampleAnswers : loadAnswers();
     if (!a || !a.interests.length) { setStatus("empty"); return; }
     setAnswers(a);
     const base = Math.floor(Math.random() * 1000) + 1;
     setSeeds({ social: base, pro: base + 1, card: base + 2 });
+    setStatus("loading");
     const t = setTimeout(() => setStatus("ready"), 700);
     return () => clearTimeout(t);
-  }, [sample]);
+  }, [sample, saved]);
 
-  const result = useMemo(() => {
+  const generated = useMemo(() => {
     if (!answers) return null;
     try {
       const social = generateIdentity(answers, seeds.social).social;
       const professional = generateIdentity(answers, seeds.pro).professional;
       const card = generateIdentity(answers, seeds.card);
-      return { social, professional, card: card.card, handle: card.social.usernames[0] } as IdentityResult & { handle: string };
+      return { social, professional, card: card.card, handle: card.social.usernames[0] } as SavedResult;
     } catch { return null; }
   }, [answers, seeds]);
 
-  useEffect(() => { if (answers && status === "ready" && !result) setStatus("error"); }, [answers, status, result]);
+  // A saved profile shows exactly what was saved; regenerating a section swaps in fresh text for that section.
+  const result = useMemo<SavedResult | null>(() => {
+    if (!savedResult) return generated;
+    if (!generated) return savedResult;
+    return {
+      social: seeds.social === 1 ? savedResult.social : generated.social,
+      professional: seeds.pro === 1 ? savedResult.professional : generated.professional,
+      card: seeds.card === 1 ? savedResult.card : generated.card,
+      handle: seeds.card === 1 ? savedResult.handle : generated.handle,
+    };
+  }, [savedResult, generated, seeds]);
+
+  const resultKey = result ? JSON.stringify(result) : "";
+  const alreadySaved = savedKey === resultKey || (!!savedResult && seeds.social === 1 && seeds.pro === 1 && seeds.card === 1);
+
+  useEffect(() => { if (status === "ready" && !result) setStatus("error"); }, [status, result]);
 
   const regen = (k: keyof typeof seeds) => setSeeds((s) => ({ ...s, [k]: s[k] + 7 }));
+
+  const saveProfile = () => {
+    if (!result || alreadySaved) return;
+    const r = savedProfiles.add({ name: profileName, result, answers: sample ? null : answers });
+    if (r.ok) { setSavedKey(resultKey); setSaveOpen(false); toast.success(`Saved “${r.value.name}” in this browser`); }
+    else toast.error(r.error);
+  };
 
   const saveImage = async () => {
     if (!cardRef.current) return;
