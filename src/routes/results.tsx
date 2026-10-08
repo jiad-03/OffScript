@@ -170,11 +170,28 @@ function Results() {
       <section className="mx-auto max-w-6xl px-5 pt-12 md:px-10 md:pt-16">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="kicker text-wine">{sample ? "Sample edition" : "Your edition"}</p>
-            <h1 className="mt-4 text-5xl leading-[0.95] sm:text-7xl">{answers?.name ? `${answers.name.split(" ")[0]}, ` : ""}<span className="italic">off script.</span></h1>
+            <p className="kicker text-wine">{savedName ? `Saved edition · ${savedName}` : sample ? "Sample edition" : "Your edition"}</p>
+            <h1 className="mt-4 text-5xl leading-[0.95] sm:text-7xl">{result.card.name ? `${result.card.name.split(" ")[0]}, ` : ""}<span className="italic">off script.</span></h1>
           </div>
-          <Link to="/create" className="btn btn-outline self-start sm:self-auto">← Edit answers</Link>
+          <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+            {alreadySaved
+              ? <Link to="/saved" className="btn btn-outline">✓ Saved · View all</Link>
+              : <button className="btn btn-primary" onClick={() => setSaveOpen((o) => !o)}>Save profile</button>}
+            {saved ? <Link to="/saved" className="btn btn-outline">← Saved profiles</Link> : <Link to="/create" className="btn btn-outline">← Edit answers</Link>}
+          </div>
         </div>
+        {saveOpen && !alreadySaved && (
+          <form onSubmit={(e) => { e.preventDefault(); saveProfile(); }} className="mt-6 rounded-lg border border-border bg-card p-5">
+            <label className="kicker text-wine" htmlFor="profile-name">Name this profile</label>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input id="profile-name" autoFocus value={profileName} maxLength={NAME_MAX} onChange={(e) => setProfileName(e.target.value)}
+                className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-display text-xl" />
+              <button type="submit" className="btn btn-primary">Save</button>
+              <button type="button" className="btn btn-quiet" onClick={() => setSaveOpen(false)}>Cancel</button>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Saved only in this browser on this device — not on our servers and not backed up. Clearing browser data deletes it.</p>
+          </form>
+        )}
       </section>
 
       {/* Social */}
