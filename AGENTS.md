@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Identity text generation lives behind the IdentityGenerator type in src/lib/identity so a backend/AI provider can replace the local template generator later.
