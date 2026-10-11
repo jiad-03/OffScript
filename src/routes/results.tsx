@@ -53,7 +53,7 @@ function Results() {
       setStatus("ready"); return;
     }
     const a = sample ? sampleAnswers : loadAnswers();
-    if (!a || !a.interests.length) { setStatus("empty"); return; }
+    if (!a || !a.niche) { setStatus("empty"); return; }
     setAnswers(a);
     const base = Math.floor(Math.random() * 1000) + 1;
     setSeeds({ social: base, pro: base + 1, card: base + 2 });
