@@ -1,7 +1,7 @@
 import { emptyAnswers, type Answers } from "./types";
 
 // Answers live only in this browser tab (sessionStorage) and vanish when it closes.
-const KEY = "offscript.answers";
+const KEY = "offscript.answers.v2";
 
 export function loadAnswers(): Answers | null {
   if (typeof window === "undefined") return null;
@@ -19,13 +19,20 @@ export function clearAnswers() {
   try { sessionStorage.removeItem(KEY); } catch { /* ignore */ }
 }
 
+// Fictional sample creator (no real stats).
 export const sampleAnswers: Answers = {
+  ...emptyAnswers,
   name: "Maya Ren",
-  field: "UX design",
-  interests: ["Film photography", "Typography", "Cooking"],
-  strengths: ["Visual storytelling", "Listening", "Organising chaos"],
-  personality: ["Curious", "Calm", "Playful"],
+  publicName: "Maya Ren",
+  niche: "Food",
+  subNiche: "Budget home cooking",
+  platforms: [{ platform: "Instagram", url: "instagram.com/maya.cooks" }, { platform: "TikTok", url: "tiktok.com/@maya.cooks" }],
+  formats: ["Short-form video", "Recipes & tutorials"],
+  personality: ["Calm", "Playful"],
+  strengths: ["Storytelling", "Clean editing", "Honest reviews"],
   tone: "thoughtful",
-  goals: ["Land a first design role", "Build a portfolio"],
-  experience: "",
+  audience: "students and young professionals cooking on a budget",
+  services: ["Sponsored Reels / TikToks", "Product reviews", "Recipe development"],
+  contact: "hello@example.com",
+  goal: "Get my first brand deals",
 };

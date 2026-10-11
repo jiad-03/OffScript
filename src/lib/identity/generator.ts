@@ -1,7 +1,7 @@
 import type { Answers, IdentityGenerator, Tone } from "./types";
 
-// Local template generator. It ONLY recombines what the user typed or picked —
-// it never adds employers, degrees, years, numbers or achievements.
+// Local TEMPLATE generator (not AI). It only recombines what the user typed or picked —
+// it never adds follower counts, engagement stats, brand partners, credentials or numbers.
 
 function rng(seed: number) {
   let s = seed >>> 0 || 1;
@@ -21,31 +21,11 @@ function list(items: string[], conj = "and") {
 }
 
 const toneBank: Record<Tone, { openers: string[]; closers: string[]; verbs: string[] }> = {
-  warm: {
-    openers: ["Mostly", "Happiest when it's", "Here for"],
-    closers: ["Say hi anytime.", "Glad you're here.", "Come say hello."],
-    verbs: ["sharing", "making room for", "slowly falling for"],
-  },
-  witty: {
-    openers: ["Professionally distracted by", "Running on", "Currently overthinking"],
-    closers: ["Opinions are mine, typos too.", "No further questions.", "Results may vary."],
-    verbs: ["over-researching", "collecting tabs about", "annoying friends about"],
-  },
-  bold: {
-    openers: ["All in on", "Built on", "Obsessed with"],
-    closers: ["Making it count.", "No half measures.", "Watch this space."],
-    verbs: ["chasing", "building around", "going deep on"],
-  },
-  minimal: {
-    openers: ["", "", ""],
-    closers: ["", "", ""],
-    verbs: ["", "", ""],
-  },
-  thoughtful: {
-    openers: ["Thinking out loud about", "Quietly curious about", "Paying attention to"],
-    closers: ["Learning in public.", "Still figuring it out, on purpose.", "Notes from the in-between."],
-    verbs: ["exploring", "noticing", "writing my way through"],
-  },
+  warm: { openers: ["Sharing", "Making", "Here for"], closers: ["Say hi anytime.", "Glad you're here.", "DMs open."], verbs: ["sharing", "making", "talking about"] },
+  witty: { openers: ["Professionally distracted by", "Running on", "Currently overthinking"], closers: ["Opinions are mine, typos too.", "No further questions.", "Results may vary."], verbs: ["over-researching", "making too many videos about", "annoying my camera roll with"] },
+  bold: { openers: ["All in on", "Built on", "Obsessed with"], closers: ["Making it count.", "No half measures.", "Watch this space."], verbs: ["going deep on", "building around", "chasing"] },
+  minimal: { openers: ["", "", ""], closers: ["", "", ""], verbs: ["", "", ""] },
+  thoughtful: { openers: ["Thinking out loud about", "Quietly documenting", "Paying attention to"], closers: ["Creating in public.", "Still figuring it out, on purpose.", "Notes from behind the camera."], verbs: ["exploring", "documenting", "unpacking"] },
 };
 
 const motifs = ["circle", "arch", "lines", "grid"];
@@ -57,93 +37,121 @@ export const generateIdentity: IdentityGenerator = (a, seed) => {
 
   const tone: Tone = (a.tone || "warm") as Tone;
   const bank = toneBank[tone];
-  const ints = shuffle(a.interests);
+  const niche = a.niche.trim() || "content";
+  const sub = a.subNiche.trim();
+  const topics = [niche, sub].filter(Boolean);
+  const formats = shuffle(a.formats);
   const traits = shuffle(a.personality);
   const strengths = shuffle(a.strengths);
-  const i1 = ints[0] ?? "ideas", i2 = ints[1] ?? ints[0] ?? "people";
-  const t1 = traits[0] ?? "curious", t2 = traits[1] ?? traits[0] ?? "thoughtful";
-  const s1 = strengths[0] ?? "learning fast", s2 = strengths[1] ?? strengths[0] ?? "listening";
+  const f1 = formats[0] ?? "content";
+  const t1 = traits[0] ?? "honest", t2 = traits[1] ?? traits[0] ?? "relatable";
+  const s1 = strengths[0] ?? "storytelling", s2 = strengths[1] ?? strengths[0] ?? "consistency";
+  const display = (a.publicName.trim() || a.name.trim());
+  const firstName = display.split(" ")[0] ?? "";
+  const focus = sub ? `${lower(niche)} (${lower(sub)})` : lower(niche);
 
   // ---- Social bios
   let bios: string[];
   if (tone === "minimal") {
     bios = [
-      `${cap(lower(i1))}. ${cap(lower(i2))}. ${cap(lower(t1))}.`,
-      `${cap(lower(t1))} · ${lower(i1)} · ${lower(s1)}`,
-      `${cap(list(ints.slice(0, 3)))}.`,
+      `${cap(lower(niche))}${sub ? `. ${cap(lower(sub))}` : ""}. ${cap(lower(t1))}.`,
+      `${cap(lower(niche))} · ${lower(f1)} · ${lower(s1)}`,
+      `${cap(list(topics))}. ${cap(list(formats.slice(0, 2)))}.`,
     ];
   } else {
     bios = [
-      `${pick(bank.openers)} ${list(ints.slice(0, 2))}. ${cap(lower(t1))}, a little ${lower(t2)}. ${pick(bank.closers)}`,
-      `${cap(lower(t1))} human ${pick(bank.verbs)} ${lower(i1)}${ints[1] ? ` and ${lower(i2)}` : ""}. ${pick(bank.closers)}`,
-      `${cap(list(ints.slice(0, 3)))} — that's the whole personality. Good at ${lower(s1)}. ${pick(bank.closers)}`,
+      `${pick(bank.openers)} ${list(topics)}. ${cap(lower(t1))}, a little ${lower(t2)}. ${pick(bank.closers)}`,
+      `${cap(lower(t1))} creator ${pick(bank.verbs)} ${focus}${formats.length ? ` through ${list(formats.slice(0, 2))}` : ""}. ${pick(bank.closers)}`,
+      `${cap(list(topics))} — ${lower(s1)} first. ${pick(bank.closers)}`,
     ];
   }
   bios = bios.map((b) => b.replace(/\s+/g, " ").trim());
 
   // ---- Usernames
   const slug = (s: string) => lower(s).replace(/[^a-z0-9]+/g, "");
-  const first = slug(a.name.split(" ")[0] ?? "");
-  const iw = slug(i1.split(" ")[0] ?? ""), iw2 = slug(i2.split(" ")[0] ?? ""), tw = slug(t1);
+  const first = slug(firstName);
+  const nw = slug(niche.split(" ")[0] ?? ""), sw = slug((sub || niche).split(" ")[0] ?? ""), tw = slug(t1);
   const base = first
-    ? [`${first}.${iw}`, `${first}_offscript`, `${iw}by${first}`, `${first}${tw}`, `the${first}${iw2}`, `${first}.in.${iw2}`]
-    : [`${tw}.${iw}`, `${iw}and${iw2}`, `not.${tw}.enough`, `${iw}notes`, `the${tw}${iw2}`, `${iw}.offscript`];
+    ? [`${first}.${nw}`, `${first}creates`, `${nw}by${first}`, `${first}${tw}`, `the${first}${sw}`, `${first}.on.${sw}`]
+    : [`${tw}.${nw}`, `${nw}and${sw}`, `${nw}notes`, `the${tw}${sw}`, `${nw}.offscript`, `${sw}studio`];
   const usernames = Array.from(new Set(shuffle(base))).slice(0, 4).map((u) => `@${u.slice(0, 28)}`);
 
-  // ---- Tagline
-  const taglines = [
-    `${cap(lower(t1))} by nature, ${lower(i1)} by choice.`,
-    `Where ${lower(i1)} meets ${lower(i2)}.`,
-    `${cap(lower(s1))}, with a soft spot for ${lower(i2)}.`,
-    `A ${lower(t1)} take on ${lower(i1)}.`,
-  ];
-  const tagline = pick(taglines);
+  const tagline = pick([
+    `${cap(lower(t1))} ${focus}, made with care.`,
+    `${cap(lower(niche))}, told ${lower(t1)}.`,
+    `${cap(lower(s1))} for ${lower(niche)} lovers.`,
+    `A ${lower(t1)} take on ${lower(sub || niche)}.`,
+  ]);
 
-  // ---- Professional
-  const field = a.field.trim();
-  const goalBit = a.goals.length ? list(a.goals.slice(0, 2)) : "";
-  const headline = field
-    ? pick([
-        `${cap(field)} | ${cap(lower(s1))} & ${lower(s2)} | Interested in ${lower(i1)}`,
-        `${cap(field)} — ${cap(lower(s1))}, ${lower(s2)} and a ${lower(t1)} approach`,
-      ])
-    : pick([
-        `${cap(lower(s1))} · ${cap(lower(s2))} · Curious about ${lower(i1)}`,
-        `${cap(lower(t1))} and ${lower(t2)} | Strengths in ${lower(s1)} and ${lower(s2)}`,
-      ]);
-
-  const exp = a.experience.trim().replace(/\s+/g, " ");
-  const aboutParts = [
-    pick([
-      `I'm ${a.name.trim() ? a.name.trim().split(" ")[0] + ", " : ""}someone people would describe as ${list(traits.slice(0, 3))}.`,
-      `${a.name.trim() ? a.name.trim().split(" ")[0] + " here. " : ""}If I had to sum myself up: ${list(traits.slice(0, 3))}.`,
-    ]),
-    `My strengths are ${list(strengths.slice(0, 3))}${field ? `, and I'm putting them to work in ${field}` : ""}.`,
-    exp ? `Relevant experience, in my own words: ${exp.replace(/\.?$/, ".")}` : "",
-    `Outside of work I spend time on ${list(ints.slice(0, 3))} — it shapes how I think and what I notice.`,
-    goalBit ? `Right now I want to ${goalBit}.` : "",
-    pick(["I'm always open to a good conversation.", "Feel free to reach out.", "Let's connect."]),
-  ];
-  const about = aboutParts.filter(Boolean).join(" ");
-
-  const portfolio = [
-    pick([
-      `Hi — welcome. This is a collection of what I care about and how I work.`,
-      `This space is part portfolio, part notebook.`,
-    ]),
-    `I bring ${lower(s1)} and ${lower(s2)} to everything I make${field ? `, with a focus on ${field}` : ""}.`,
-    `My approach is ${lower(t1)} and ${lower(t2)}, and you'll see threads of ${list(ints.slice(0, 2))} throughout.`,
-    goalBit ? `Next up: ${goalBit}.` : "",
+  // ---- Platform bios & headline
+  const headline = pick([
+    `${cap(lower(niche))} creator${sub ? ` · ${cap(lower(sub))}` : ""} | ${cap(lower(s1))} & ${lower(s2)}`,
+    `${cap(lower(niche))} creator making ${list(formats.slice(0, 2)) || "content"} | Open to brand collaborations`,
+  ]);
+  const about = [
+    `${display ? `I'm ${firstName}, a` : "I'm a"} ${lower(niche)} creator${sub ? ` focused on ${lower(sub)}` : ""}.`,
+    formats.length ? `I make ${list(formats.slice(0, 3))} with a ${lower(t1)}, ${lower(t2)} feel.` : "",
+    `What I bring: ${list(strengths.slice(0, 3)) || "honest, consistent content"}.`,
+    a.audience.trim() ? `My content is for ${a.audience.trim().replace(/\.$/, "")}.` : "",
+    pick(["Open to thoughtful brand partnerships.", "Always happy to talk collaborations.", "Let's make something good together."]),
   ].filter(Boolean).join(" ");
+  const portfolio = [
+    pick([`Welcome — this is a snapshot of my work as a ${lower(niche)} creator.`, `This page is part portfolio, part introduction.`]),
+    `My content is ${lower(t1)} and ${lower(t2)}, built on ${lower(s1)} and ${lower(s2)}.`,
+    a.services.length ? `I work with brands on ${list(a.services.slice(0, 3))}.` : "",
+  ].filter(Boolean).join(" ");
+
+  // ---- Media kit (suggested wording + verbatim facts)
+  const intro = pick([
+    `${display || "This creator"} makes ${list(formats.slice(0, 2)) || "content"} about ${focus}, with a ${lower(t1)} and ${lower(t2)} style.`,
+    `${display ? `${display} is a` : "A"} ${lower(t1)} ${lower(niche)} creator${sub ? ` with a focus on ${lower(sub)}` : ""}, known for ${lower(s1)}.`,
+  ]);
+  const positioning = pick([
+    `A ${lower(t1)} voice in ${lower(niche)}${sub ? `, specialising in ${lower(sub)}` : ""}.`,
+    `${cap(lower(sub || niche))} content that feels ${lower(t1)}, not scripted.`,
+  ]);
+  const strengthsLine = strengths.length
+    ? `Brands get ${list(strengths.slice(0, 3))}${formats.length ? `, delivered as ${list(formats.slice(0, 2))}` : ""}.`
+    : "";
+
+  // ---- Brand pitch draft (no guarantees, no invented numbers)
+  const sign = display || "[Your name]";
+  const pitchLines = [
+    `Hi [Brand name] team,`,
+    ``,
+    `I'm ${sign}, a ${lower(niche)} creator${sub ? ` focused on ${lower(sub)}` : ""}${a.platforms[0]?.platform ? ` on ${list(a.platforms.map((p) => p.platform).slice(0, 3))}` : ""}. My content is ${lower(t1)} and ${lower(t2)}${formats.length ? `, mostly ${list(formats.slice(0, 2))}` : ""}.`,
+    ``,
+    `I think there's a natural fit with [Brand name] because [one specific reason you love the brand or product].${a.audience.trim() ? ` My audience is ${a.audience.trim().replace(/\.$/, "")}.` : ""}`,
+    ``,
+    a.services.length ? `I'd love to explore ${list(a.services.slice(0, 3), "or")} together.` : `I'd love to explore a collaboration that suits you.`,
+    a.collaborations.trim() ? `Previous work, in brief: ${a.collaborations.trim().replace(/\.?$/, ".")}` : "",
+    ``,
+    `Happy to share my media kit and ideas. Thanks for reading!`,
+    ``,
+    sign + (a.contact.trim() ? `\n${a.contact.trim()}` : ""),
+  ];
+  const pitch = {
+    subject: pick([`Collaboration idea: ${sign} × [Brand name]`, `${cap(lower(niche))} creator — partnership enquiry`]),
+    body: pitchLines.filter((l, i, arr) => !(l === "" && arr[i - 1] === "")).join("\n"),
+  };
 
   return {
     social: { bios, usernames, tagline },
-    professional: { headline, about, portfolio },
+    professional: { headline, about: about.replace(/\s+/g, " "), portfolio },
     card: {
-      name: a.name.trim() || "Untitled Self",
+      name: display || "Untitled Creator",
       tagline,
-      tags: [...ints.slice(0, 2), ...traits.slice(0, 1)].map(lower),
+      tags: [niche, ...(sub ? [sub] : []), ...formats.slice(0, 1)].map(lower).slice(0, 3),
       motif: pick(motifs),
     },
+    kit: {
+      intro, positioning, strengthsLine,
+      facts: {
+        name: display, niche: a.niche.trim(), subNiche: sub, platforms: a.platforms.filter((p) => p.url.trim() || p.platform.trim()),
+        formats: a.formats, audience: a.audience.trim(), audienceSize: a.audienceSize.trim(), engagement: a.engagement.trim(),
+        collaborations: a.collaborations.trim(), services: a.services, samples: a.samples.filter((s) => s.trim()), contact: a.contact.trim(),
+      },
+    },
+    pitch,
   };
 };
